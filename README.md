@@ -19,7 +19,7 @@ The intuition is that upward losses make representations aware of context, downw
 However, to avoid information leaking to lower layers through backpropagation, each layer group (e.g., space, time...) has to be trained independently, as if it was a separate network. We tested several variations of this, but our main idea was using a separate optimizer for each group (spatial, temporal, clip...). Nevertheless, in general we observed great training unstability because of this. I think that my work is very similar to the later I-JEPA (see [my summary of the work here](https://javierselva.github.io/blog/paper-summary/2024/09/27/psum-IJEPA.html)), but this work from META AI uses a siamese setting instead, greatly avoiding these optimizing issues I was facing.
 
 # Repo structure and relevant files
-```
+<pre>
 /anaconda_envs                   
 |__ data_processing_env.yml  ## Includes relevant libraries for data pre-processing.
 |__ pytorch2.yml             ## Main environment for the repo. 
@@ -49,7 +49,7 @@ visualization.py             ## TSNE and UMAP functions.
 wandb_log.py
 lancher.sh                   ## Script to launch main.py training.
 launcher3.sh                 ## Script to launch visualization.py.
-``` 
+</pre>
 
 # Usage
 
