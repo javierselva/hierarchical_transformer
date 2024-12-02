@@ -1,0 +1,53 @@
+
+train:
+  seed: 42
+  resume: False
+
+  dataset: 'ucf101'
+  batch_size: 32
+  test_batch_size: 64           # -1 to indicate same as training
+
+  epochs: 20
+  log_interval: 50
+  val_init: True                # Used to run a validation round at start-up
+  val_interval: 1               # Only used for 'cls' task, which does not need probing nor fine_tunning
+
+  save_model: True
+  save_path: '/output'         # Path to store model checkpoints
+  tmp_path: '/tmp'              # Path to store temporal checkpoints (e.g. for fine_tunning)
+  model_name: "S3D_sup_scratch_SGD"         # Model name. Mostly for wandb tracking. If a sweep is used, this serves as base name
+  wb_project: 'SSD-5'           # Weights & Biases project name
+
+  val_opt:
+    name: 'SGD'
+    lr: 0.001
+    weight_decay: 0.0
+    momentum: 0.9
+    nesterov: True
+
+  val_sch:
+    name: 'StepLR'
+    gamma: 0.9
+    step_size: 1              # Number of epochs before each step
+
+
+data:
+  dl_workers: 4         # Number of workers for DataLoader
+  use_datAug: False
+  # UCF101 config
+  ucf101:
+    location:
+      DATA_PATH: '/data/ucf101/UCF-101/'
+      LABEL_PATH: '/data-net/datasets/UCF101/ucfTrainTestlist/'
+      SAVE_PATH: '/data/'
+      train_file: 'ucf101_train_official_160.hdf5'
+      test_file: 'ucf101_test_official_160.hdf5'
+      labels: 'classInd.txt'
+
+    num_classes: 101
+    sampler:
+      width: 160
+      height: 120
+      length: 20
+      frequency: 5    # Sampling rate (i.e., sample 1 out of every 'frequency' frames)
+      step: 3          # Sliding window step ( if length == step then no overlap between sequences)

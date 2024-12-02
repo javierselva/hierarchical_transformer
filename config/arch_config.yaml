@@ -1,0 +1,57 @@
+output_batchnorm: True  # Add a batch-norm at the output of every module (and also of every predictor)
+
+# Two modules are needed
+# groups: "['backbone', 'space']" # Image variant
+groups: "['space', 'time']"
+# groups: "['space', 'time', 'clip']"
+# groups: "['backbone', 'space', 'time']"
+# groups: "['backbone', 'space', 'time', 'clip']"
+
+architecture_backbone:
+  use_cnn_stem: True   # If backbone is to be used this must be set to True, regardless of "backbone" being in groups
+  in_channels: 3
+  out_channels: 128    # Number of output channels
+  dim: 256             # Dimensionality of tokens after patchifying. Even if use_cnn_stem:False, this is used
+  nD: 4                # Number of dimensions at output, after aggregation ( B x F x P x D )
+  dropout: 0.0
+  pred_h_dim:          # (list) Dim. of hidden layers in predictors. If not provided 1 hidden layer is used with dimx2
+
+architecture_space:
+  dim: 128             # Dimensionality of the tokens
+  nD: 3                # Number of dimensions at output, after aggregation ( B x F x D )
+  input_size: (56,56)  # Frame size (after backbone if use_cnn_stem == True). If squared frame, single int may be used.
+  size_ratio: 7        # Patch size (must be divisible by input size)
+  layers: 2            # Number of transformer layers
+  heads: 4             # Number of heads per layer
+  mlp_dim: 256         # Dimensionality of projection in FFN
+  head_dim: 32         # Dimension of each head
+  dropout: 0.1         # Dropout probability
+  causal_mask: False   # Whether to use a causal transformer
+  pred_h_dim:         # (list/int) Dim. of hidden layers in predictors. If not provided 1 hidden layer is used with dimx2
+
+architecture_time:
+  dim: 256             # Dimensionality of the tokens
+  nD: 3                # Number of dimensions at output, after aggregation ( B x C x D ) if size_ratio > 1, otherwise 2
+  input_size: 20       # Number of frames
+  size_ratio: 4        # Number of clips to divide the frames into. If > 1 nD should be 3.
+  layers: 2            # Number of transformer layers
+  heads: 6             # Number of heads per layer
+  mlp_dim: 512         # Dimensionality of projection in FFN
+  head_dim: 48         # Dimension of each head
+  dropout: 0.1         # Dropout probability
+  causal_mask: True    # Whether to use a causal transformer
+  pred_h_dim:          # (list) Dim. of hidden layers in predictors. If not provided 1 hidden layer is used with dimx2
+
+architecture_clip:
+  dim: 512             # Dimensionality of the tokens
+  nD: 2                # Number of dimensions at output, after aggregation ( B x D )
+  input_size: 4        # Number of clips (probably size_ratio from architecture_time)
+  size_ratio: 1        # Number of clips to divide the clips into.
+  layers: 2            # Number of transformer layers
+  heads: 8             # Number of heads per layer
+  mlp_dim: 1024         # Dimensionality of projection in FFN
+  head_dim: 64         # Dimension of each head
+  dropout: 0.1         # Dropout probability
+  causal_mask: True    # Whether to use a causal transformer
+  pred_h_dim:          # (list) Dim. of hidden layers in predictors. If not provided 1 hidden layer is used with dimx2
+

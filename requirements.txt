@@ -1,0 +1,15 @@
+av
+einops
+h5py
+matplotlib
+numpy
+Pillow
+pytorch-ignite
+pytorch-lightning
+lightning-flash
+wandb
+torch
+six
+torchvision
+decord
+

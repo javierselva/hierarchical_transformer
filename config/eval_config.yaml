@@ -1,0 +1,4 @@
+model_name: "prueba_cosas"
+wb_project: "SSD-3"
+tsne:
+  perplexity: 50

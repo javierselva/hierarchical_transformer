@@ -1,0 +1,8 @@
+FROM pytorch/pytorch:1.9.1-cuda11.1-cudnn8-devel
+
+RUN conda install -c conda-forge av=9.2.0=py37he3ae868_0 einops=0.4.1=pyhd8ed1ab_0  \
+    h5py=3.6.0=nompi_py37hd308b1e_100 matplotlib=3.5.1=py37h06a4308_1  \
+    pytorch-ignite=0.4.8=pyhd8ed1ab_0 pytorch-lightning=1.5.10=pyhd8ed1ab_0  \
+    lightning-flash=0.7.5=pyhd8ed1ab_0 wandb=0.12.16=pyhd8ed1ab_0 umap-learn tsnecuda scikit-learn
+
+ENTRYPOINT ["/bin/bash", "launcher3.sh"]

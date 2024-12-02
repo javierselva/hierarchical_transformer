@@ -1,0 +1,31 @@
+
+# big files
+*.npz
+*.h5
+*.bin
+*.gz
+*.pkl
+*.pt
+*-ubyte
+
+# pycharm
+*/.idea/
+*.npz
+.idea/
+*/.idea/
+*.npz
+__pycache__/
+.vscode
+.env
+.ipynb_checkpoints
+
+# Other repos/folders
+.STAM-pytorch-main/
+.ViViT-pytorch-master/
+.timesformer_byLucidrains/
+./output
+.github
+
+wandb.key
+tmp_running_servers.txt
+cross-entropy.ipynb

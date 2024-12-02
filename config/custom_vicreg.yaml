@@ -1,0 +1,126 @@
+train:
+  task: 'vicreg'
+  seed: 42
+
+  dataset: 'ssv2'
+  batch_size: 8
+  probe_batch_size: 512          # -1 to indicate same as ssl training
+  test_batch_size: 64           # -1 to indicate same as training
+  use_mixed_precision: False
+  type_for_mixed_prec: "float16" # Either float16 or bfloat16 (for float32 just set use_mixed_precision to False)
+  num_iters_grad_accum: 1       # Indicates number of batches after which otpim.step() will be called
+
+  epochs: 46
+  log_interval: 200
+  val_interval_type: 'exponential'
+  val_init: False                # Used to run a validation round at start-up
+  probe_interval: 2             # Use 0 to deactivate probbing
+  probe_epochs: 4
+
+  save_model: True
+  save_path: '/output'         # Path to store model checkpoints
+  tmp_path: '/tmp'              # Path to store temporal checkpoints (e.g. for fine_tunning)
+
+  model_name: "vicreg_ssv2_BN"
+  wb_project: 'Baselines'           # Weights & Biases project name
+
+  explicit_freeze: True
+
+  loss_params:
+    VICREG:
+      eps: 0.0001            # Epsilon for the square root in variance regularization
+      sim_coeff: 5        # Weight for similarity (MSE)
+      std_coeff: 5        # Weight for variance regularization
+      cov_coeff: 1         # Weight for covariance regularization
+
+  optimizer:
+    name: 'SGD'
+    lr: 0.006
+    weight_decay: 0.00001
+    momentum: 0.9
+    nesterov: True
+
+  scheduler:
+    name: 'CosineAnnealingLR'
+    T_max: 6                   # this is used to indicate number of epochs for half a cosine cycle
+    eta_min: 0.00001
+    last_epoch: -1             # this is used to resume training!
+
+  warmup:
+    name: True                # (bool) whether or not to use warmup lr scheduling. "name" is used for code simplicity.
+    warmup_start_value: 0.00001
+    warmup_duration: 10
+
+  val_opt:
+    name: 'SGD'
+    lr: 0.04
+    weight_decay: 0.000001
+    momentum: 0.9
+    nesterov: True
+
+  val_sch:
+    name: 'StepLR'
+    gamma: 0.8
+    step_size: 1
+
+  use_curriculum: False
+
+arch:
+  output_batchnorm: True  # Add a batch-norm at the output of every module (and also of every predictor)
+
+  groups: "['space', 'time']"
+
+  architecture_backbone:
+    use_cnn_stem: True   # If backbone is to be used this must be set to True, regardless of "backbone" being in groups
+    in_channels: 3
+    out_channels: 128    # Number of output channels
+    dim: 256             # Dimensionality of tokens after patchifying. Even if use_cnn_stem:False, this is used
+    nD: 4                # Number of dimensions at output, after aggregation ( B x F x P x D )
+    dropout: 0.0
+    pred_h_dim:          # (list) Dim. of hidden layers in predictors. If not provided 1 hidden layer is used with dimx2
+
+  architecture_space:
+    dim: 128             # Dimensionality of the tokens
+    nD: 3                # Number of dimensions at output, after aggregation ( B x F x D )
+    input_size: (56,56)  # Frame size (after backbone if use_cnn_stem == True). If squared frame, single int may be used.
+    size_ratio: 7        # Patch size (must be divisible by input size)
+    layers: 2            # Number of transformer layers
+    heads: 4             # Number of heads per layer
+    mlp_dim: 256         # Dimensionality of projection in FFN
+    head_dim: 32         # Dimension of each head
+    dropout: 0.1         # Dropout probability
+    causal_mask: False   # Whether to use a causal transformer
+    pred_h_dim:         # (list/int) Dim. of hidden layers in predictors. If not provided 1 hidden layer is used with dimx2
+
+  architecture_time:
+    dim: 256             # Dimensionality of the tokens
+    nD: 2                # Number of dimensions at output, after aggregation ( B x C x D ) if size_ratio > 1, otherwise 2
+    input_size: 16       # Number of frames
+    size_ratio: 1        # Number of clips to divide the frames into. If > 1 nD should be 3.
+    layers: 2            # Number of transformer layers
+    heads: 6             # Number of heads per layer
+    mlp_dim: 512         # Dimensionality of projection in FFN
+    head_dim: 48         # Dimension of each head
+    dropout: 0.1         # Dropout probability
+    causal_mask: True    # Whether to use a causal transformer
+    pred_h_dim:          # (list) Dim. of hidden layers in predictors. If not provided 1 hidden layer is used with dimx2
+
+
+data:
+  data_augmentation:
+    use_datAug: 1.0              # Probability of augmenting a given batch (all frames in the batch will get same augmentation)
+    normalization: 'imagenet'
+
+  ssv2:
+    sampler:
+      length: 16
+      frequency: 3
+      step: 4
+  ucf101:
+    sampler:
+      width: 224
+      height: 224
+      length: 16
+      frequency: 4
+      step: 3
+      shuffle: True

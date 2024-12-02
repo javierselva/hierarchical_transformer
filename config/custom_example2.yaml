@@ -1,0 +1,102 @@
+train:
+  task: 'mine'
+  batch_size: 8
+  probe_batch_size: 512          # -1 to indicate same as ssl training
+  test_batch_size: 64           # -1 to indicate same as training
+  use_mixed_precision: False
+  num_iters_grad_accum: 1       # Indicates number of batches after which otpim.step() will be called
+
+  epochs: 20
+
+  val_init: False
+  probe_interval: 2
+  #    (a probing round will be run before each fine-tunning regardless of probe_interval)
+  probe_epochs: 4
+  ftune_epochs: 0
+
+  model_name: "ssl_160_wDA_side_std0.5_20f"
+  wb_project: 'NewAblations'           # Weights & Biases project name
+
+  loss_fn: 'CE'                 # Either Cross Entropy (CE), Cosine Similarity (CS) or Mean Squared Error (MSE)
+  loss_params:
+    CE:
+      eps: 0.00001
+
+  warmup:
+    warmup_duration: 8
+
+  # Indicates whether to use single optimizer for whole network (True) or one for each group (False)
+  use_single_optimizer: False
+
+  predictor:
+    pred_multiplier: 3
+    # pred_aside indicates whether to train predictors:
+    #    0. With corresponding module;
+    #    1. In different param group but same optimizer;
+    #    2. Separate optimizer.
+    pred_aside: 1
+
+  use_temporal_prediction: True  # If true prediction down
+  std_divisor: 0.5
+
+  loss_weights: # If equal to 1 does nothing. Otherwise will linearly transform these into 1s over the epochs
+    backbone_up: 1
+    backbone_side: 1
+    space_down: 1
+    space_side: 1
+    space_up: 1
+    time_down: 1
+    time_side: 1
+
+arch:
+  groups: "['backbone', 'space', 'time']"
+
+  architecture_backbone:
+    use_cnn_stem: True   # If backbone is to be used this must be set to True, regardless of "backbone" being in groups
+    in_channels: 3
+    out_channels: 128    # Number of output channels
+    dim: 256             # Dimensionality of tokens after patchifying. Even if use_cnn_stem:False, this is used
+    nD: 4                # Number of dimensions at output, after aggregation ( B x F x P x D )
+    dropout: 0.0
+
+  architecture_space:
+    dim: 128             # Dimensionality of the tokens
+    nD: 3                # Number of dimensions at output, after aggregation ( B x F x D )
+    input_size: (30,40)  # Frame size (after backbone if use_cnn_stem == True). If squared frame, single int may be used.
+    size_ratio: 5        # Patch size (must be divisible by input size)
+    layers: 2            # Number of transformer layers
+    heads: 4             # Number of heads per layer
+    mlp_dim: 256         # Dimensionality of projection in FFN
+    head_dim: 32         # Dimension of each head
+    dropout: 0.1         # Dropout probability
+    causal_mask: False    # Whether to use a causal transformer
+
+  architecture_time:
+    dim: 256             # Dimensionality of the tokens
+    nD: 2                # Number of dimensions at output, after aggregation ( B x C x D ) if size_ratio > 1, otherwise 2
+    input_size: 20       # Number of frames
+    size_ratio: 1        # Number of clips to divide the frames into. If > 1 nD should be 3.
+    layers: 2            # Number of transformer layers
+    heads: 6             # Number of heads per layer
+    mlp_dim: 512         # Dimensionality of projection in FFN
+    head_dim: 48         # Dimension of each head
+    dropout: 0.1         # Dropout probability
+    causal_mask: True    # Whether to use a causal transformer
+
+data:
+  dl_workers: 4
+  data_loader: 'frames'
+  data_augmentation:
+    use_datAug: 0.85              # Probability of augmenting a given batch (all frames in the batch will get same augmentation)
+
+  # UCF101 config
+  ucf101:
+    location:
+      train_file: 'ucf101_train_official_160.hdf5'
+      test_file: 'ucf101_test_official_160.hdf5'
+
+    sampler:
+      width: 160
+      height: 120
+      length: 20
+      frequency: 5    # Sampling rate (i.e., sample 1 out of every 'frequency' frames)

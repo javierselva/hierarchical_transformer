@@ -1,0 +1,157 @@
+task: 'mine'
+seed: 42
+resume_path:                  # Empty field initializes net from scratch (otherwise, folder_name
+                              #   (which should be within "save_path"))
+resume_epoch:                 # Indicates from which epoch to restart from the experiment in "resume_path"
+resume_mod:                   # Whether the checkpoint to use is from pretraining (ssl), (probe)ing or (ftune)ing
+# True (model weights, epoch, scheduler and optimizer's state)
+# False (just model weights)
+resume_all:
+
+dataset: 'ucf101'
+batch_size: 32
+probe_batch_size: 512          # -1 to indicate same as ssl training
+test_batch_size: 64           # -1 to indicate same as training
+use_mixed_precision: True
+# "If overflows are observed, for example, then we suggest trying bfloat16"
+type_for_mixed_prec: "float16" # Either float16 or bfloat16 (for float32 just set use_mixed_precision to False)
+num_iters_grad_accum: 1       # Indicates number of batches after which otpim.step() will be called
+
+epochs: 24
+log_interval: 200
+val_interval_type: 'exponential'   # 'linear' or 'exponential' by a factor indicated in the interval variables below
+                              #   if 'exponential' but interval == 1, it behaves linearly
+                              #   if 'exponential' interval must be >= 2 (except 1.5, but val_init will be set to True)
+val_interval: 1               # Epochs after which validation is run (knn). Set to 0 to skip them.
+
+test_type: 'probe'            # Either 'probe' or 'ftune' (done at the end of training)
+eval_on: 'best'               # Either 'best' or 'last' to run evaluation at the end of training
+probe_epochs: 15
+ftune_epochs: 10
+
+save_model: True
+save_path: '/output'         # Path to store model checkpoints
+tmp_path: '/tmp'              # Path to store temporal checkpoints (e.g. for fine_tunning)
+# Model name. Mostly for wandb tracking. If a sweep is used, this serves as base name
+model_name: "refactor"
+wb_project: 'SSD-5'           # Weights & Biases project name
+
+alternating_interval: 10      # Percentage of batches after which the frozen parameters switch to another group(s)
+explicit_freeze: True
+always_compute_loss: False     # If True, always computes loss for all modules (even if frozen)
+loss_fn: 'MSE'                 # Either Cross Entropy (CE), Cosine Similarity (CS), Mean Squared Error (MSE), or VICReg
+
+loss_params:
+    CE:
+      pred_temp: 1.         # Temperature for prediction softmax
+      tgt_temp: .5         # Temperature for target softmax
+      eps: 0.000001             # Epsilon for the logarithm in cross entropy computation
+    CS:
+      mult: 1.             # Loss multiplier (mult - mult*cs_loss(pred,tgt))
+    VICREG:
+      eps: 0.0001            # Epsilon for the square root in variance regularization
+      sim_coeff: 25        # Weight for similarity (MSE)
+      std_coeff: 25        # Weight for variance regularization
+      cov_coeff: 1         # Weight for covariance regularization
+
+# Indicates whether to use single optimizer for whole network (True) or one for each group (False)
+use_single_optimizer: False
+
+predictor:
+  pred_multiplier: 3       # Multiplier for the LR of the predictors (base LR defined in optimizer params).
+  # pred_aside indicates whether to train predictors:
+  #    0. With corresponding module;
+  #    1. In different param group but same optimizer;
+  #    2. Separate optimizer.
+  pred_aside: 2
+
+use_temporal_prediction: False  # If true, activates sideways prediction
+# the probability to sample a position for temporal (sideways) prediction follows a normal distribution around the
+# position making the prediction (p), std for the distribution is computed as max(p, tot_tokens-p)/std_divisor
+#    as the std_divisior gets smaller, the normal will gradually approximate a uniform distribution
+std_divisor: 3
+
+interpolate_loss_weights_to_uniformity: True
+loss_weights:  # If equal to 1 does nothing. Otherwise will linearly transform these into 1s over the epochs
+  backbone_up: 1
+  backbone_side: 1
+  space_down: 1
+  space_side: 1
+  space_up: 1
+  time_down: 1
+  time_side: 1
+  time_up: 1
+  clip_down: 1
+
+# IMPORTANT!! the variable "name" is used in utils.py to properly read these files!!
+# It should always be the first variable for that set of parameters and only used for this (optim, sched, warmup...)!!
+# when "name" is changed in a custom yaml, it will completely erase all default values here
+# and use instead the ones in custom (no more, no less). This is because different optimizers have different parameters.
+optimizer:
+  name: 'SGD'
+  lr: 0.1
+  weight_decay: 0.0
+  momentum: 0.8
+  nesterov: True
+
+scheduler:
+  name: 'CosineAnnealingLR'
+  T_max: 6                   # this is used to indicate number of epochs for half a cosine cycle
+  eta_min: 0.0001
+  last_epoch: -1             # this is used to resume training!
+
+warmup:
+  name: True                # (bool) whether or not to use warmup lr scheduling. "name" is used for code simplicity.
+  warmup_start_value: 0.001
+  warmup_duration: 6
+
+val_opt:
+  name: 'Adadelta'
+  lr: 0.1
+
+val_sch:
+  name: 'StepLR'
+  gamma: 0.8
+  step_size: 1
+
+use_curriculum: False
+# Curriculum info is better to be left commented out as it may interfere with the one in custom file
+#curriculum_step: 0
+#curriculum:
+#  # Step 0 is set in the current config file (above)
+#  step_1:
+#    train:
+#      epochs: 10
+#      batch_size: 16
+#      probe_batch_size: 64
+#      test_batch_size: 32
+#      resume_all: False
+#
+#    arch:
+#      groups: "['backbone','space','time']"
+#      architecture_space:
+#        nD: 3
+#
+#    data:
+#      ucf101:
+#        sampler:
+#          length: 5
+#  # Other steps build on what the previous step modified
+#  step_2:
+#    train:
+#      epochs: 15
+#      batch_size: 8
+#      probe_batch_size: 32
+#      test_batch_size: 16
+#
+#    arch:
+#      groups: "['backbone','space','time','clip']"
+#      architecture_time:
+#        input_size: 20
+#        size_ratio: 4
+#        nD: 3
+#
+#    data:
+#      ucf101:
+#        sampler:
+#          length: 20

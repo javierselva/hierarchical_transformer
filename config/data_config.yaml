@@ -1,0 +1,86 @@
+dl_workers: 4                   # Number of workers for DataLoader
+data_loader: 'frames'           # Either 'frames' or 'hdf5' or 'video' (decord)
+max_seq_per_video: 0           # Maximum number of sequences to sample from a video. 0 means all sequences
+
+# Pytorch transforms generally accept tuples for ranges of values. However pyyaml with SafeLoader does not accept
+# tuples, but generally lists of two elements are fine.
+data_augmentation:
+  use_datAug: 1.0              # Probability of augmenting a given batch (all frames in the batch will get same augmentation)
+  use_datAug_probing: False     # Whether to use data augmentation during probing (deactivates saving features, making it slower)
+  normalization: 'custom'      # Either 'imagenet' or the 'custom' from the given dataset (train -> dataset). If doesn't exist, defaults to imagenet
+  augs:                        # Comment all below within augs to get default behavior (see ht_mine.py)
+    color_jitter:
+      p: 0.3
+      # The following four params may also be tuples of (min, max)
+      brightness: 0.4
+      contrast: 0.4
+      saturation: 0.4
+      hue: 0.1
+    grayscale:
+      p: 0.15
+    horizontal_flip:
+      p: 0.5
+    gaussian_blur:
+      p: 0.3
+      kernel: [3,3]     # Kernel size
+      sigma: [0.1,2.0]  # Range of std of the kernel. Single float may be provided.
+    random_resized_crop:
+      p: 1.0
+      scale: [0.75,0.95] # Range of area of the crop
+      ratio: # TODO ratio is not used. defines range of aspect ratio of the random crop
+
+
+# UCF101 config
+ucf101:
+  location:
+    DATA_PATH: '/data/ucf101/UCF-101/'
+    LABEL_PATH: '/data-net/datasets/UCF101/ucfTrainTestlist/'
+    SAVE_PATH: '/data/'
+    train_file: 'ucf101_train_official.hdf5'
+    test_file: 'ucf101_test_official.hdf5'
+    labels: 'classInd.txt'
+
+  num_classes: 101
+  sampler:
+    width: 80
+    height: 60
+    length: 20
+    frequency: 5    # Sampling rate (i.e., sample 1 out of every 'frequency' frames)
+    step: 3          # Sliding window step ( if length == step then no overlap between sequences)
+
+ssv2:
+  location:
+    SAVE_PATH: '/data/'
+    labels: 'classes.txt'
+
+  num_classes: 174
+  sampler:
+    width: 224
+    height: 224
+    # Avg length of videos in SSV2 is 45 frames (min 8, max 120)
+    length: 20
+    frequency: 3    # Sampling rate (i.e., sample 1 out of every 'frequency' frames)
+    step: 2          # Sliding window step ( if length == step then no overlap between sequences)
+
+k400:
+  location:
+      SAVE_PATH: '/data/'
+      labels: 'classes.txt'
+
+  num_classes: 400
+  sampler:
+    width: 224
+    height: 224
+    length: 20
+    frequency: 5    # Sampling rate (i.e., sample 1 out of every 'frequency' frames)
+    step: 2          # Sliding window step ( if length == step then no overlap between sequences)
+
+imagenet:
+  location: '/data/'
+  num_classes: 1000
+
+  sampler:
+    width: 224
+    height: 224
+    step: 1    # Will load every other "step" images in a given epoch (1 just loads all of them)
+
