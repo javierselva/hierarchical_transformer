@@ -23,14 +23,14 @@ However, to avoid information leaking to lower layers through backpropagation, e
 /anaconda_envs                   
 |__ data_processing_env.yml  ## Includes relevant libraries for data pre-processing.
 |__ pytorch2.yml             ## Main environment for the repo. 
-|__ svt_pytorch.yml          ## Includes relevant libraries to run experiments with the [svt code](https://github.com/kahnchana/svt). 
+|__ svt_pytorch.yml          ## Includes relevant libraries to run experiments with the <a href="https://github.com/kahnchana/svt" target="_blank">svt code</a>. 
 /dockerfile
 |__ Dockerfile               ## Dockerfile for the main project.
 |__ Dockerfile.bak           ## Dockerfile for running visualization (tsne, umap...)
 |__ pytorch_server.yml       ## pytorch2.yml was not workin in the server, so I used this one.
 /run_scripts                 ## Scripts to run experiments from a docker image.
 /architecture                ## Neural Net Models
-|__ stam.py                  ## Generalized version of the [base transformer architecture](https://github.com/lucidrains/STAM-pytorch).
+|__ stam.py                  ## Generalized version of the <a href="https://github.com/lucidrains/STAM-pytorch" target="_blank">base transformer architecture</a>.
 |__ ht.py                    ## General class for the hierarchical transformer.
 |__ ht_mine.py               ## Custom Instance for HT, dedicated to the main idea of this repo.
 |__ ht_vicreg.py             ## Custom Instance for HT, adapted for VICReg siamese setting.
