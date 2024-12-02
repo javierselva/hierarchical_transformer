@@ -19,35 +19,37 @@ The intuition is that upward losses make representations aware of context, downw
 However, to avoid information leaking to lower layers through backpropagation, each layer group (e.g., space, time...) has to be trained independently, as if it was a separate network. We tested several variations of this, but our main idea was using a separate optimizer for each group (spatial, temporal, clip...). Nevertheless, in general we observed great training unstability because of this. I think that my work is very similar to the later I-JEPA (see [my summary of the work here](https://javierselva.github.io/blog/paper-summary/2024/09/27/psum-IJEPA.html)), but this work from META AI uses a siamese setting instead, greatly avoiding these optimizing issues I was facing.
 
 # Repo structure and relevant files
->/anaconda_envs                   
->|__ data_processing_env.yml  ## Includes relevant libraries for data pre-processing.
->|__ pytorch2.yml             ## Main environment for the repo. 
->|__ svt_pytorch.yml          ## Includes relevant libraries to run experiments with the [svt code](https://github.com/kahnchana/svt). 
->/dockerfile
->|__ Dockerfile               ## Dockerfile for the main project.
->|__ Dockerfile.bak           ## Dockerfile for running visualization (tsne, umap...)
->|__ pytorch_server.yml       ## pytorch2.yml was not workin in the server, so I used this one.
->/run_scripts                 ## Scripts to run experiments from a docker image.
->/architecture                ## Neural Net Models
->|__ stam.py                  ## Generalized version of the [base transformer architecture](https://github.com/lucidrains/STAM-pytorch).
->|__ ht.py                    ## General class for the hierarchical transformer.
->|__ ht_mine.py               ## Custom Instance for HT, dedicated to the main idea of this repo.
->|__ ht_vicreg.py             ## Custom Instance for HT, adapted for VICReg siamese setting.
->/data_utils                  ## Data pre-processing and custom data-loaders.
->/config                      ## Config files for defining experiment parameters.
->|__ arch_config.yaml
->|__ data_config.yaml
->|__ train_config.yaml
->|__ other custom files...
->main.py                      ## Main training / eval loop.
->losses.py                    ## Loss functions and logic.
->eval.py                      ## Testing/Validation functions.
->train.py                     ## Main training functions.
->utils.py
->visualization.py             ## TSNE and UMAP functions.
->wandb_log.py
->lancher.sh                   ## Script to launch main.py training.
->launcher3.sh                 ## Script to launch visualization.py.
+```
+/anaconda_envs                   
+|__ data_processing_env.yml  ## Includes relevant libraries for data pre-processing.
+|__ pytorch2.yml             ## Main environment for the repo. 
+|__ svt_pytorch.yml          ## Includes relevant libraries to run experiments with the [svt code](https://github.com/kahnchana/svt). 
+/dockerfile
+|__ Dockerfile               ## Dockerfile for the main project.
+|__ Dockerfile.bak           ## Dockerfile for running visualization (tsne, umap...)
+|__ pytorch_server.yml       ## pytorch2.yml was not workin in the server, so I used this one.
+/run_scripts                 ## Scripts to run experiments from a docker image.
+/architecture                ## Neural Net Models
+|__ stam.py                  ## Generalized version of the [base transformer architecture](https://github.com/lucidrains/STAM-pytorch).
+|__ ht.py                    ## General class for the hierarchical transformer.
+|__ ht_mine.py               ## Custom Instance for HT, dedicated to the main idea of this repo.
+|__ ht_vicreg.py             ## Custom Instance for HT, adapted for VICReg siamese setting.
+/data_utils                  ## Data pre-processing and custom data-loaders.
+/config                      ## Config files for defining experiment parameters.
+|__ arch_config.yaml
+|__ data_config.yaml
+|__ train_config.yaml
+|__ other custom files...
+main.py                      ## Main training / eval loop.
+losses.py                    ## Loss functions and logic.
+eval.py                      ## Testing/Validation functions.
+train.py                     ## Main training functions.
+utils.py
+visualization.py             ## TSNE and UMAP functions.
+wandb_log.py
+lancher.sh                   ## Script to launch main.py training.
+launcher3.sh                 ## Script to launch visualization.py.
+``` 
 
 # Usage
 
