@@ -1,0 +1,3 @@
+#!/bin/bash
+
+./run_docker.sh 6 custom_sup_CL_clip_160_datAug_noCaus.yaml; ./run_docker.sh 6 custom_sup_CL_clip_160_datAug_noCaus--CLp-1.yaml; ./run_docker.sh 6 custom_sup_CL_clip_160_datAug_noCaus--CLp-2.yaml; ./run_docker.sh 6 custom_sup_CL_timeOnly_160_datAug_noCaus.yaml; ./run_docker.sh 6 custom_sup_CL_timeOnly_160_datAug_noCaus--CLp-1.yaml; ./run_docker.sh 6 custom_sup_CL_timeOnly_160_datAug_noCaus--CLp-2.yaml
